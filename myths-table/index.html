@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Loading CSV Data with D3</title>
+
+	<style type="text/css">
+		table {
+			border-collapse: collapse;
+			font-family: Arial;
+		}
+
+		th {
+			height: 50px;
+			background-color: #C3DDE0;
+		}
+
+		td {
+			font-size: 13px;
+		}
+
+		table, th, td {
+   			border: 1px solid black;
+   			padding: 10px;
+		}
+
+		body {
+			font-family: Arial;
+		}
+
+		h1 {
+			font-size: 36px;
+			line-height: 30px;
+		}
+
+		p {
+			font-size: 16px;
+		}
+
+		p.source {
+			font-size: 14px;
+			color: #666;
+		}
+
+		a {
+			color: #EB7F00;
+		}
+
+	</style>
+	
+	</head>
+
+	<body>
+
+	<h1>A Table About Myths</h1>
+    <p>This table shows some some popular myths/questions ranked by Google hits.</p>
+    <p class="source">Source: <a href="http://www.dataisbeautiful.net" target="_blank">dataisbeautiful.net</a></p>
+		<div id="table"></div>
+
+	</body>
+
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+
+		<script type="text/javascript" src="js/stupidtable.js"></script>
+
+		<script type="text/javascript">
+
+			d3.csv("data/category_myths.csv", function(error, myData){
+
+				if (error) { 
+					console.log("Had an error loading file.");
+	     		}
+
+				var myArray = [];
+
+				myData.forEach(function(d, i){
+
+					d.percentage = d.percent * 100;
+
+			 	 	myArray.push([d.myth, d.description, d.google_hits, d.category, d.percentage]);
+
+				});
+
+				console.log(myData);
+				console.log(myArray);
+
+		// how do I sort myData by column [2]? This returns a bunch of weird things, so let's go by the percentages
+
+			// myArray.sort(function(a,b) {
+   //      return d3.descending(a[2], b[2]);
+   //      })
+
+			myArray.sort(function(a,b) {
+        return d3.descending(a[4], b[4]);
+        })
+
+				var table = d3.select("#table").append("table");
+
+				var header = table.append("thead").append("tr"); 
+
+        // do a data join and create th items for each data element in the array
+				header
+					.selectAll("th")
+					.data(["Myth", "Description", "Google Hits", "Category", "Percent"])
+					.enter()
+					.append("th")
+          	.text(function(d) { return d; });
+
+        var tablebody = table.append("tbody");
+
+        rows = tablebody
+        	.selectAll("tr")
+        	.data(myArray)
+        	.enter()
+        	.append("tr");
+
+        // We built the rows using the nested array - now each row has its own array.
+
+        cells = rows.selectAll("td")
+        	// each row has data associated; we get it and enter it for the cells.
+        	.data(function(d) {
+        		console.log(d);
+        		return d;
+        	})
+        	.enter()
+        	.append("td")
+        	.text(function(d, i) {
+        		if (i === 4) {
+        			return d + "%";
+        		}
+        		else {return d;}
+        		
+        	});
+
+        	// Now we are adding attributes to the existing header cells here, for use
+			// in the jquery function below.
+			d3.selectAll("th")
+					.data(["string", "string", "int", "string", "float", ])
+					.attr("data-sort", function(d) {return d;});
+
+			// Now that the table exists - we can use it with JQuery functions!
+				$("table").stupidtable();
+
+        	});
+
+		</script>
+
+</html>

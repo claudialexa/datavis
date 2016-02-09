@@ -1,0 +1,75 @@
+
+<html>
+  <head>
+
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+    }
+
+    .left {
+    position: absolute;
+    float: left;
+    }
+
+    .right {
+    position: absolute;
+    float: right;
+    }
+
+    .bottom {
+    top: 400;
+    }
+
+
+    </style>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Myths</title>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript" src="https://code.highcharts.com/highcharts.js"></script>
+
+<script type="text/javascript">
+
+
+$(function () { 
+    $('#container-right').highcharts({
+        chart: {
+            type: 'scatter',
+            inverted: true
+        },
+        title: {
+            text: 'Most Popular Myths by Category'
+        },
+        xAxis: {
+            categories: [
+            'The Autism Epidemic', 'The Left and right brains have different capabilities', 'Adding salt to water makes it boil more quickly', 'Oil stops pasta sticking', 'You can get high from banana peel', 'George Washington smoked cannabis', 'If you have used LSD, youre legally insane', 'Marijuana is a gateway drug', 'Rule of thumb', 'The 5 Second Rule', 'Eating before swimming is dangerous', 'Hair products can "repair" your hair', 'Waking sleepwalkers is dangerous', 'Most body heat is lost through the head', 'Alcohol kills brain cells', 'Napoleon was short', 'Einstein failed maths', 'Pilgrims wore all black', 'The First Thanksgiving', 'US Constitution written on hemp', 'Iron Maidens', 'Lie detector', 'Missing Persons Reports', 'You have to say if you are a cop', 'Getting Closure']
+        },
+
+        yAxis: {
+            title: {
+                text: 'Top Myths by Google Hits'
+            }
+        },
+        series: [{
+            name: 'Google Hits',
+            data: [1130000, 2600000, 11300000, 5200000, 3390000, 1460000, 898000, 767000, 1040000, 96000000, 7460000, 1800000, 941000, 434000 , 393000, 33400000, 2130000, 1490000, 1160000, 417000, 414000, 3510000, 634000,436000, 33400000]
+        }]
+    });
+});
+
+
+</script>
+</head>
+
+<body>
+
+<div id="container-right" style="width: 50%; height: 400px;" class="right"></div>
+
+<p class="left bottom">Hi What's up</p>
+
+</body>
+</html>
+

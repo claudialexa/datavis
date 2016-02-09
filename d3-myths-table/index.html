@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Myths: Horizontal Bar</title>
+
+	<style type="text/css">
+
+		body {
+			font-family: Arial;
+		}
+
+		h1 {
+			font-size: 36px;
+			line-height: 30px;
+		}
+
+		p {
+			font-size: 16px;
+			color: #666666;
+		}
+
+		p.source {
+			font-size: 14px;
+			color: #666;
+		}
+
+		a {
+			color: #EB7F00;
+		}
+
+		svg {
+			background-color: white;
+		}
+
+		.tooltip {   
+		  position: absolute;           
+		  text-align: center;           
+		  width: 60px;                  
+		  height: 28px;                 
+		  padding: 2px;             
+		  font: 12px sans-serif;        
+		  background: lightsteelblue;   
+		  border: 0px;      
+		  border-radius: 8px;           
+		  pointer-events: none;         
+		}
+
+	</style>
+	
+	</head>
+
+	<body>
+
+	<h1>A Very Basic Chart About Myths</h1>
+    <p>This table shows some some popular myths/questions ranked by Google hits.</p>
+    <p class="source">Source: <a href="http://www.dataisbeautiful.net" target="_blank">dataisbeautiful.net</a></p>
+		<div id="table"></div>
+
+	</body>
+
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+
+		<script type="text/javascript" src="js/stupidtable.js"></script>
+
+		<script type="text/javascript">
+
+			var height = 600;
+			var width = 1000;
+			var colors = d3.scale.category20c();
+    		console.log(colors(0));
+
+			// Set up the range here - my output sizes for my bars - from 0 to width.
+			var widthScale = d3.scale.linear()
+								.range([ 0, width ]);
+
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", width)
+						.attr("height", height);
+
+			d3.csv("data/category_myths.csv", function(error, data){
+
+				if (error) { 
+					console.log("Had an error loading file.");
+	     		}
+
+	     		data.sort(function(a, b) {
+					return d3.descending(+a.google_hits, +b.google_hits); 
+				});
+
+
+				var myArray = [];
+				var allDifferences = [];
+
+				data.forEach(function(d, i){
+
+					d.percentage = d.percent * 100;
+
+			 	 	myArray.push([d.myth, d.description, d.google_hits, d.category, d.percentage]);
+
+				 	 allDifferences.push(d.google_hits);
+
+				console.log(allDifferences);
+
+				});
+
+				console.log(data);
+				console.log(myArray);
+
+			myArray.sort(function(a,b) {
+        return d3.descending(a[4], b[4]);
+        })
+
+		// set up the domain here, from the data i read in. I'm starting at 0, not min.
+			widthScale.domain([ 0, d3.max(data, function(d) {
+				return +d.google_hits;
+			}) ]);
+
+			var rects = svg.selectAll("rect")
+						.data(data)
+						.enter()
+						.append("rect")
+						.style("fill", function(d, i) {
+        					return colors(i);
+      					});
+
+				rects.attr("x", 0)
+
+					.attr("y", function(d, i) {
+							// this is a hack to space the bars - we can do it was axes later.
+						return i * 20;   // just spacing the bars - notice from the top!
+					})
+					.attr("width", function(d) {
+						return widthScale(+d.google_hits); // use your scale here:
+					})
+					.attr("height", 5)
+					.append("title")  
+					.text(function(d) {
+						return d.myth + " " + "Google Hits:" + " " + d.google_hits;
+					});
+
+        	});
+				
+		</script>
+
+</html>
