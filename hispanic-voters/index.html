@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<!-- A modified example from Scott Murray's Knight d3 course. -->
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Hispanic Voter Turnout: 2008</title>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+		<style type="text/css">
+
+			body {
+				background-color: white;
+				font-family: Helvetica, Arial, sans-serif;
+			}
+
+			h1 {
+				font-size: 24px;
+				margin: 0;
+			}
+
+			p {
+				font-size: 14px;
+				margin: 10px 0 0 0;
+			}
+
+			svg {
+				background-color: white;
+			}
+
+/*			circle.dots {
+				fill: steelblue;
+			}*/
+
+			circle:hover {
+				fill: red;
+			}
+
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: black;
+				shape-rendering: crispEdges;
+			}
+
+			.axis text {
+				font-family: sans-serif;
+				font-size: 11px;
+			}
+
+		</style>
+	</head>
+	<body>
+
+		<h1>Hispanic Voter Turnout: 2008</h1>
+
+		<p>Hispanic voters are becoming a vital part of the electorate, frequently vital to winning an election. Because of this, the 2016 presidential candidates have kept a close eye to the trends in voting, particularly in regards to Hispanic voters. Below is a breakdown of voter turnout broken down by income.</p>
+
+		<p>Source: <a href="https://www.census.gov/hhes/www/socdemo/voting/publications/p20/2008/tables.html">census.gov</a>, 2008</p>
+
+		<script type="text/javascript">
+
+			var fullWidth = 900;
+			var fullHeight = 700;
+
+			var margin = {top:50, left:100, right:50, bottom: 50};  
+
+			// what do you need to do to make the width and height for the chart?
+			var width = fullWidth - margin.left - margin.right;
+			var height = fullHeight - margin.top - margin.bottom;
+
+			var dotRadius = 6; // fix this to a nice value.
+
+			// fill in the margin values here.
+			var xScale = d3.scale.linear()
+								.range([ 0, width ]);
+
+			// top to bottom:
+			var yScale = d3.scale.linear()
+								.range([ height, 0 ]);
+
+			//  Custom tick count if you want it.
+			// Create your axes here.
+			var xAxis = d3.svg.axis()
+							.scale(xScale)
+							.orient("bottom")
+							.ticks(10);  // fix this to a good number of ticks for your scale later.
+
+			var yAxis = d3.svg.axis()
+							.scale(yScale)
+							.orient("left");
+
+			var svg = d3.select("body")
+						.append("svg")
+						.attr("width", fullWidth)
+						.attr("height", fullHeight)
+						.append("g")
+							.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+			d3.csv("hispanic_voters.csv", function(data) {
+
+				// look at the data file and pick 2 columns to contrast with each other.
+
+				xScale.domain(
+					d3.extent(data, function(d) {
+						return +d.total;
+					}));
+
+				yScale.domain(
+					d3.extent(data, function(d) {
+						return +d.voted;
+					}));
+
+				var circles = svg.selectAll("circle")
+					.data(data)
+					.enter()
+					.append("circle")
+					.classed("dots", true);
+
+				var color = d3.scale.category10();
+
+				// Circles in SVG have cx, cy, and r attributes. x location, y location, radius.
+
+				circles.attr("cx", function(d) {
+					return xScale(+d.total);
+					})
+					.attr("cy", function(d) {
+					return yScale(+d.voted);
+					})
+					.attr("r", 6) 
+					.style("fill", function(d) {
+						return color(d.income);
+					})
+					
+						
+					.append("title")
+					.text(function(d) {
+						return "Income:" + " " + d.income + " " + "Total # of Citizens:" + " " + d.total + "  " + "Number of Voters" + " " + d.voted;
+					});
+
+				svg.append("g")
+					.attr("class", "x axis")
+					.attr("transform", "translate(0," + height + ")")
+					.call(xAxis);
+
+				svg.append("g")
+					.attr("class", "y axis")
+					// .attr("transform", "translate(" + ([3] + ",0)")
+					.call(yAxis);
+
+				svg.append ("text")
+					.attr("class", "axis text")
+					.attr("transform", "translate(" + (margin.left + width / 2) + " ," +
+                        (height + margin.bottom) + ")")
+					.style("text-anchor", "middle")
+					.text ("Total # of Citizens");
+
+				svg.append ("text")
+					.attr("transform", "rotate(-90)")
+			        .attr("y", 0 - margin.left) 
+			        .attr("x", 0 - (height / 2)) 
+			        .attr("dy", "1em")
+			        .attr("class", "axis text")
+			        .style("text-anchor", "middle")
+			        .text("Voted in 2008");
+						});
+				
+
+
+
+		</script>
+
+	</body>
+</html>

@@ -29,6 +29,29 @@
 			color: #EB7F00;
 		}
 
+		rect:hover {
+			opacity: 0.5;
+			}
+
+		.axis path,
+		.axis line {
+				fill: none;
+				stroke: #666666;
+				shape-rendering: crispEdges;
+		}
+
+		.axis text {
+			font-family: sans-serif;
+			font-size: 10px;
+			color: #666666;
+		}
+
+		.xlabel {
+			font-famile: sans-serif;
+			font-size: 11px;
+			color: gray;
+		}
+
 		svg {
 			background-color: white;
 		}
@@ -39,8 +62,9 @@
 		  width: 60px;                  
 		  height: 28px;                 
 		  padding: 2px;             
-		  font: 12px sans-serif;        
-		  background: lightsteelblue;   
+		  font: 14px sans-serif bold;  
+		  font-weight: bold;      
+		  background-color: #dedede;   
 		  border: 0px;      
 		  border-radius: 8px;           
 		  pointer-events: none;         
@@ -57,29 +81,50 @@
     <p class="source">Source: <a href="http://www.dataisbeautiful.net" target="_blank">dataisbeautiful.net</a></p>
 		<div id="table"></div>
 
-	</body>
 
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
 
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 
-		<script type="text/javascript" src="js/stupidtable.js"></script>
+	<script type="text/javascript" src="js/stupidtable.js"></script>
 
-		<script type="text/javascript">
+	<script type="text/javascript">
 
-			var height = 600;
-			var width = 1000;
+			var fullWidth = 1000;
+			var fullHeight = 750;
 			var colors = d3.scale.category20c();
     		console.log(colors(0));
 
-			// Set up the range here - my output sizes for my bars - from 0 to width.
-			var widthScale = d3.scale.linear()
-								.range([ 0, width ]);
+    		// Setting up the Margins Here
+
+    		var margin = {top:20, left: 300, right:50, bottom:50};
+
+    		var width = fullWidth - margin.left - margin.right;
+    		var height = fullHeight - margin.top - margin.bottom;
+
+    		var widthScale = d3.scale.linear()
+				.range([0, width]);
+
+			var heightScale = d3.scale.ordinal().rangeRoundBands([0,height], 0.4);
+
+    		// Setting up the Axis Here
+
+			var xAxis = d3.svg.axis()
+				.scale(widthScale)
+				.orient("bottom")
+				.ticks(7);
+
+			var yAxis = d3.svg.axis()
+				.scale(heightScale)
+				.orient("left")
+				.innerTickSize([0]);
 
 			var svg = d3.select("body")
 						.append("svg")
-						.attr("width", width)
-						.attr("height", height);
+						.attr("width", fullWidth)
+						.attr("height", fullHeight)
+						.append("g")
+							.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 			d3.csv("data/category_myths.csv", function(error, data){
 
@@ -87,9 +132,10 @@
 					console.log("Had an error loading file.");
 	     		}
 
-	     		data.sort(function(a, b) {
-					return d3.descending(+a.google_hits, +b.google_hits); 
-				});
+
+	     		// Setting Up Scales
+				widthScale.domain([0,3500000]);
+				heightScale.domain(data.map(function(d) {return d.myth} ));
 
 
 				var myArray = [];
@@ -107,43 +153,100 @@
 
 				});
 
-				console.log(data);
-				console.log(myArray);
 
-			myArray.sort(function(a,b) {
-        return d3.descending(a[4], b[4]);
-        })
-
-		// set up the domain here, from the data i read in. I'm starting at 0, not min.
-			widthScale.domain([ 0, d3.max(data, function(d) {
-				return +d.google_hits;
-			}) ]);
+			var median = d3.median(data, function(d) {
+				return d.google_hits;
+			} )
 
 			var rects = svg.selectAll("rect")
 						.data(data)
 						.enter()
-						.append("rect")
-						.style("fill", function(d, i) {
-        					return colors(i);
-      					});
+						.append("rect");
 
 				rects.attr("x", 0)
 
-					.attr("y", function(d, i) {
-							// this is a hack to space the bars - we can do it was axes later.
-						return i * 20;   // just spacing the bars - notice from the top!
+					.attr("y", function(d) {
+						return heightScale(d.myth);
 					})
 					.attr("width", function(d) {
 						return widthScale(+d.google_hits); // use your scale here:
 					})
-					.attr("height", 5)
-					.append("title")  
+					.attr("height", heightScale.rangeBand())
+					.style("fill" , function(d){
+
+						if (d.category === "science") {
+							return "#F5A503";
+						}
+						else if (d.category === "drugs") {
+							return "#EFC94C";
+						}
+						else if (d.category === "history") {
+							return "#4AD9D9";
+						}
+						else if (d.category === "religion") {
+							return "#36B1BF";
+						}
+
+						else if (d.category === "health") {
+							return "#45B29D";
+						}
+
+						else if (d.google_hits >= median) {
+							return "#F2385A";
+						}
+						
+					})
+
+					.append("title") 
+					.attr("class", "tooltip") 
 					.text(function(d) {
-						return d.myth + " " + "Google Hits:" + " " + d.google_hits;
+						return "Category:" + " " + d.category + " " + "Google Hits:" + " " + d.google_hits;
 					});
 
+				// SOS HOW DO I ADD LABELS AT THE END OF THE BARS?
+
+				// svg.selectAll("text.labels")
+				// 		.data(data)
+				// 		.enter()
+				// 		.append("text")
+				// 		.text(function(d) {
+				// 			return d;
+				// 		})
+   	// 					.attr("x", function(d,i) {
+   	// 						return i * d.google_hits.length+10;
+   	// 					})
+				// 	   	.attr("y", function(d) {
+				// 	   		return y - (d * 4);
+				// 	   	})
+				// 	    .classed("labels", true);
+					    
+
+				// Adding Axis information
+
+				svg.append("g")
+					.attr("class", "x axis")
+					.attr("transform", "translate(0," + height + ")")
+					.call(xAxis)
+
+				svg.append("g")
+					.attr("class", "y axis")
+					.call(yAxis)
+
+				// Label Axis
+
+				svg.append("text")
+					.attr("class", "xlabel")
+        			.attr("transform", "translate(" + width/2 + " ," +
+        				height + ")")
+        			.style("text-anchor", "middle")
+        			.attr("dy", "35")
+        			.text("Google Hits");
+
+
         	});
+
+
 				
 		</script>
-
+</body>
 </html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Terrorism 2014: Horizontal Bar Chart</title>
+	<style type="text/css">
+		body {
+			font-family: Arial;
+		}
+
+		h1 {
+			font-size: 36px;
+			line-height: 30px;
+		}
+		svg {
+			background-color: white;
+		}
+	</style>
+</head>
+
+<body>
+<h1>Terrorist Attacks in 2014</h1>
+    <p>Caption goes Here</p>
+    <p class="source">Source: <a href="http://www.start.umd.edu/gtd/" target="_blank">Global Terrorism Database</a></p>
+</body>
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+
+<script type="text/javascript" src="stupidtable.js"></script>
+
+<script type="text/javascript">
+	var height = 600;
+	var width = 1000;
+	// var colors = barColors();
+
+	// Using scales to set up size of bars
+	var widthScale = d3.scale.linear().range([0, width]);
+
+	// Appending content of svg
+	var svg = d3.select("body")
+				.append("svg")
+				.attr("width", width)
+				.attr("height", height);
+
+	//Loading CSV Data
+	d3.csv("2014_terrorism.csv", function(error, data) {
+
+			if (error) {
+				console.log("There is an error here");
+			}
+
+			data.sort(function(a, b) {
+				return d3.descending (+a.nkill, +b.nkill);
+			});
+
+		// Push Informationt to Array
+
+		var myArray = [];
+
+		data.forEach (function(d, i) {
+			myArray.push([d.year, d.country, d.region, d.gname, d.weapon_type, d.nperps, d.nkill, d.nkillus, d.nkillter, d.nwound]);
+		});
+
+		console.log(data);
+		console.log (myArray);
+
+		myArray.sort (function(a,b) {
+			return d3.descending (a[6], b[6]);
+		})
+
+		// Setting up domain
+
+		widthScale.domain([0, d3.max(data, function(d){
+			return +d.nkill;
+		}) ]);
+
+		var rects = svg.selectAll("rect")
+			.data(data)
+			.enter()
+			.append("rect")
+			// Go back and add classes per region here
+			.style("fill", "black"); 
+
+		rects.attr ("x", 0)
+			.attr ("y", function(d, i) {
+				return i*20;
+			})
+			.attr ("width", function(d) {
+				return widthScale (+d.nkill);
+			})
+			.attr("height", 5)
+			.append ("title")
+			.text(function(d) {
+				return d.nkill;
+			});
+
+	});
+
+</script>
