@@ -28,6 +28,11 @@
 				stroke-width: 1;
 			}
 
+			path {
+				fill:none;
+				stroke: black;
+			}
+
 			.axis path,
 			.axis line {
 				fill: none;
@@ -58,7 +63,7 @@
 			var fullwidth = 1000;
 				fullheight = 500;
 
-			var dateFormat = d3.time.format("%m/%d/%Y");
+			var dateFormat = d3.time.format("%B %d %Y");
 
 			var margin = {top: 20, right: 25, bottom: 20, left: 200};
 
@@ -79,13 +84,6 @@
 				.scale(xScale)
 				.orient("bottom")
 				.ticks(15)
-				.tickFormat(function (d)
-				{
-					return dateFormat(d);
-				})
-				.innerTickSize([0])
-				.scale(yScale)
-				.orient("left")
 				.innerTickSize([0]);
 
 			var yAxis = d3.svg.axis()
@@ -97,10 +95,10 @@
 
 			var line = d3.svg.line()
 				.x(function (d) {
-					return xScale(dateFormat.parse(d.date));
+					return xScale(dateFormat.parse(d.Date));
 				})
-				.y (function (d) {
-					return yScale(+d.votes);
+				.y(function (d) {
+					return yScale(+d.Votes);
 				});
 
 			//Create the empty SVG image
@@ -126,48 +124,14 @@
 					})
 					.entries(data);
 
-
-				var dates = d3.keys(dataset[0].slice);
-
-				console.log(dataset);
-
-				var newDataset = [];
-
-
-				dataset.forEach (function (d,i){
-					var myGermanyData = [];
-					
-					dates.forEach(function (y) {
-
-						// If value is not empty
-						if (d[y]) {
-
-							myGermanyData.push({
-								Party: d.Party,
-								Date: d.Date,
-								Votes: d[y]  
- 							});
-						}
-				
-			});
-
-
-				newDataset.push({
-				party: d.Party, votes: myGermanyData });
-			}); 
-	
-				console.log(newDataset);
-
 				xScale.domain(
-					d3.extent(dates, function(d) {
-						return dateFormat.parse(d);
+					d3.extent(data, function(d) {
+						return dateFormat.parse(d.Date);
 					}));
 
 				yScale.domain([
-					d3.max(dataset, function(d) {
-						return d3.max(d.votes, function (d) {
-							return +d.votes;
-						});
+					d3.max(data, function(d) {
+							return +d.Votes;
 					}),
 					0
 					]);
@@ -181,7 +145,7 @@
 
 				groups.selectAll("path")
 					.data(function(d) { 
-						return [ d.votes ]; 
+						return [ d.values ];
 					})
 					.enter()
 					.append("path")

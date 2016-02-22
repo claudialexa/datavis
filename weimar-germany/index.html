@@ -71,6 +71,8 @@
 			var height = fullheight - margin.top - margin.bottom;
 
 			var dateFormat = d3.time.format("%m/%d/%Y");
+			var inputDateFormat = d3.time.format("%B %d %Y");
+
 
 			var xScale = d3.time.scale().range([0, width]);
 
@@ -84,10 +86,10 @@
 				.scale(xScale)
 				.orient("bottom")
 				.ticks(15)
-				.tickFormat(function(d)
-				{
-					return dateFormat(d);
-				})
+				//.tickFormat(function(d)
+				//{
+				//	return dateFormat(d);
+				//})
 				.innerTickSize([0]);
 
 			var yAxis = d3.svg.axis()
@@ -100,9 +102,9 @@
 
 			var line = d3.svg.line()
 				.x(function (d) {
-					return xScale(dateFormat.parse(d.year));
+					return xScale(inputDateFormat.parse(d.year));
 				})
-				.y (function (d) {
+				.y(function (d) {
 					return yScale(+d.amount);
 				});
 
@@ -133,6 +135,10 @@
 						}
 					});
 
+					myVotes.sort(function(a,b) { 
+						return inputDateFormat.parse(a.year) - inputDateFormat.parse(b.year);
+					});
+
 					dataset.push({
 						party: d.Party, votes: myVotes
 					});
@@ -140,7 +146,7 @@
 
 				xScale.domain(
 					d3.extent(years, function(d) {
-						return dateFormat.parse(d);
+						return inputDateFormat.parse(d);
 					}));
 
 				yScale.domain([
