@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Crazy Elections: Weimar Germany</title>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+		<style type="text/css">
+			body {
+				background-color: #ffffff;
+				font-family: sans-serif;
+			}
+
+			h1 {
+				margin-left: 30px;
+			}
+
+			p {
+				margin-left: 30px;
+				font-size: 11pt;
+				color: gray;
+			}
+
+			svg {
+				background-color: white;
+			}
+
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: black;
+				stroke-width: 1px;
+			}
+
+
+			.line {
+				fill: none;
+				stroke: gray;
+				stroke-width: 1px;
+				stroke-opacity: 80%;
+			}
+
+			.axis text {
+				font-family: sans-serif;
+				font-size: 11px;
+			}
+
+			.xlabel {
+				font-famile: sans-serif;
+				font-size: 11px;
+				color: gray;
+			}
+		</style>
+	</head>
+
+	<body>
+		<h1>Crazy Elections: Weimar Germany</h3>
+
+		<p> By the time World War I ended, the Germans had lost millions of lives and were in a deep economic depression. The unrest that followed the end of the war resulted in the overthrow of the empire and the formation of a new government, the Weimar Republic. </p>
+
+		<p>This time in German history is remembered by the cultural renaissance of German society; the emergence of cabaret, Bauhaus and the arts. At the same time, it also saw some of the biggest political and economic failures, most highlighted by rampant hyperinflation and ulatimately, the government's inability to stop Adolf Hitler from coming to power in 1935. </p>
+
+		<p>Leading to that fateful day in 1935, there were more elections and political parties around the country than Germans could count. Many (like the Nazi Party, once named the National Socialist German Workers' Party) appeared one day, died the next and revived in a few months. In following these patterns, historians have been able to understand the state of the German mindset and how the Nazi Party was actually able to get to power.</p>
+
+		<script type="text/javascript">
+
+			var fullwidth = 1000;
+				fullheight = 500;
+			var margin = {top: 20, right: 25, bottom: 20, left: 80};
+
+			var width = fullwidth- margin.left - margin.right; 
+			var height = fullheight - margin.top - margin.bottom;
+
+			var dateFormat = d3.time.format("%m/%d/%Y");
+
+			var inputDates = d3.time.format("%B %d %Y");
+			inputDates.parse(); //What to call here?
+
+			var xScale = d3.time.scale().range([0, width]);
+
+			var yScale = d3.scale.linear().range([0, height]);
+
+			// var widthScale = d3.scale.linear().range ([0, width]);
+
+			// var heightScale = d3.scale.ordinal().rangeRoundBands([margin.top, height], 0.2);
+
+			var xAxis = d3.svg.axis()
+				.scale(xScale)
+				.orient("bottom")
+				.ticks(15)
+				.tickFormat(function(d)
+				{
+					return inputDates(d);
+				})
+				.innerTickSize([0]);
+
+			var yAxis = d3.svg.axis()
+							.scale(yScale)
+							.orient("left")
+							.innerTickSize([0]);
+
+
+			// Building Lines
+
+			var line = d3.svg.line()
+				.x(function (d) {
+					return xScale(inputDates);
+				})
+				.y (function (d) {
+					return yScale(+d.amount);
+				});
+
+			//Create the empty SVG image
+			var svg = d3.select("body")
+				.append("svg")
+				.attr("width", fullwidth)
+				.attr("height", fullheight)
+				.append("g")
+				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+			d3.csv("weimar_elections.csv", function(data) {
+
+				// Do I even need this array?
+
+				var years = ["December 7 1924", "January 19 1919", "January 19 1920", "January 19 1921", "January 19 1922", "January 19 1923", "January 19 1924", "July 31 1932", "June 6 1920", "March 3 1933", "May 20 1928", "May 4 1924", "November 6 1932", "September 14 1930"];
+
+				var dataset = [];
+
+				data.forEach(function (d, i) {
+
+					var myVotes = [];
+					years.forEach(function (y) {
+
+						if (d[y]){
+							myVotes.push({
+								year: y,
+								amount: d[y]
+							});
+						}
+					});
+
+					dataset.push({
+						party: d.Party, votes: myVotes
+					});
+				});		
+
+				// How am I making my xScales now, using inputDates?
+				xScale.domain(
+					d3.extent(years, function(d) {
+						return inputDates(d);
+					}));
+
+				yScale.domain([
+					d3.max(dataset, function(d) {
+						return d3.max(d.votes, function(d) {
+							return +d.amount;
+						});
+					}),
+					0
+					]);
+
+				var groups = svg.selectAll("g")
+					.data(dataset)
+					.enter()
+					.append("g");
+
+				groups.append("title")
+					.text(function(d) {
+						return d.Party;
+					});
+
+				groups.selectAll("path")
+					.data(function(d) { // 
+						return [ d.votes ];
+					})
+					.enter()
+					.append("path")
+					.attr("class", "line")
+					.attr("d", line);
+
+				//Axes
+				svg.append("g")
+					.attr("class", "x axis")
+					.attr("transform", "translate(0," + height + ")")
+					.call(xAxis);
+
+				svg.append("g")
+					.attr("class", "y axis")
+					.call(yAxis);
+
+
+			});
+
+		</script>
+
+	</body>
+	</html>
