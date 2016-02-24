@@ -10,12 +10,12 @@
 				font-family: sans-serif;
 			}
 
-			h3 {
-				margin-left: 200px;
+			h2 {
+				margin-left: 30px;
 			}
 
 			p {
-				margin-left: 200px;
+				margin-left: 30px;
 				font-size: 11pt;
 				color: gray;
 			}
@@ -24,25 +24,51 @@
 				background-color: white;
 			}
 
-			circle {
-				stroke-width: 1;
-			}
 
 			path {
 				fill:none;
-				stroke: black;
+/*				stroke: black;
+*/				stroke-width: 2px;
 			}
 
 			.axis path,
 			.axis line {
 				fill: none;
 				stroke: black;
+				stroke-width: 1px;
 				shape-rendering: crispEdges;
 			}
+
+			.line {
+				fill: none;
+				stroke-opacity: 60%;
+				stroke-width: 2px;
+			}
+
+			.line.unfocused{
+				stroke-opacity: 60%;
+			}
+
+			.line.focused {
+				stroke-width: 4px;
+				stroke-opacity: 100%;
+/*				stroke: red;
+*/			}
 
 			.axis text {
 				font-family: sans-serif;
 				font-size: 11px;
+			}
+
+			.tooltip {
+				position: absolute;
+				z-index: 10;
+			}
+
+			.tooltip p {
+				background-color: white;
+				border: none;
+				padding: 2px;
 			}
 
 			.xlabel {
@@ -54,9 +80,14 @@
 	</head>
 
 	<body>
-		<h3>Crazy Elections: Weimar Germany</h3>
+		<h2>Crazy Elections: Weimar Germany</h2>
 
-		<p>A Paragraph here</p>
+		<p> By the time World War I ended, the Germans had lost millions of lives and were in a deep economic depression. The unrest that followed the end of the war resulted in the overthrow of the empire and the formation of a new government, the Weimar Republic. </p>
+
+		<p>This time in German history is remembered by the cultural renaissance of German society; the emergence of cabaret, Bauhaus and the arts. At the same time, it also saw some of the biggest political and economic failures, most highlighted by rampant hyperinflation and ulatimately, the government's inability to stop Adolf Hitler from coming to power in 1935. </p>
+
+		<p>Leading to that fateful day in 1935, there were more elections and political parties around the country than Germans could count. Many (like the Nazi Party, once named the National Socialist German Workers' Party) appeared one day, died the next and revived in a few months. In following these patterns, historians have been able to understand the state of the German mindset and how the Nazi Party was actually able to get to power.</p>
+
 
 		<script type="text/javascript">
 
@@ -70,20 +101,19 @@
 			var width = fullwidth- margin.left - margin.right, 
 				height = fullheight - margin.top - margin.bottom;
 
-			var widthScale = d3.scale.linear().range ([0, width]);
-
-			//This is strange
-
-			var heightScale = d3.scale.ordinal().rangeRoundBands([margin.top, height], 0.2);
+			// How can I access d.Party outside of nest?
+			// var politicalParties = d3.nest()
+			// 	.key(function (d){
+			// 		return d.Party;
+			// 	})
 
 			var xScale = d3.time.scale().range([0, width]);
-
 			var yScale = d3.scale.linear().range([0, height]);
 
 			var xAxis = d3.svg.axis()
 				.scale(xScale)
 				.orient("bottom")
-				.ticks(15)
+				.ticks(10)
 				.innerTickSize([0]);
 
 			var yAxis = d3.svg.axis()
@@ -99,7 +129,12 @@
 				})
 				.y(function (d) {
 					return yScale(+d.Votes);
-				});
+				})
+				.interpolate("basis");
+
+			var tooltip = d3.select("body")
+	      	.append("div")
+	      	.attr("class", "tooltip");
 
 			//Create the empty SVG image
 			var svg = d3.select("body")
@@ -108,8 +143,9 @@
 				.attr("height", fullheight)
 				.append("g")
 				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+			
 
-			d3.csv("german_elections.csv", function (error,data) {
+			d3.csv("german_elections_final.csv", function (error,data) {
 
 				if (error) {
 					console.log("error reading file");
@@ -129,6 +165,7 @@
 						return dateFormat.parse(d.Date);
 					}));
 
+
 				yScale.domain([
 					d3.max(data, function(d) {
 							return +d.Votes;
@@ -136,12 +173,13 @@
 					0
 					]);
 
+				var color = d3.scale.category10();
+
 				var groups = svg.selectAll("g.lines")
 					.data(dataset)
 					.enter()
 					.append("g")
 					.attr("class", "lines");
-
 
 				groups.selectAll("path")
 					.data(function(d) { 
@@ -150,7 +188,10 @@
 					.enter()
 					.append("path")
 					.attr("class", "line")
+					.style("stroke", function(d) {
+						return color(d[0].Party); })
 					.attr("d", line); 
+
 
 				//Axes
 				svg.append("g")
@@ -163,7 +204,32 @@
 					.call(yAxis);
 
 
+				d3.selectAll("g.lines")
+					.on("mouseover", mouseoverFunc)
+					.on("mouseout", mouseoutFunc)
+					.on("mousemove", mousemoveFunc);
+
 			});
+
+		function mouseoverFunc(d) {
+
+		d3.selectAll("path.line").classed("unfocused", true);
+		d3.select(this).select("path.line").classed("unfocused", false).classed("focused", true);
+		tooltip
+			.style("display", null) // this removes the display none setting from it
+			.html("<p>" + d.key + "</p>");
+	}
+
+	function mouseoutFunc() {
+			d3.selectAll("path.line").classed("unfocused", false).classed("focused", false);
+			tooltip.style("display", "none"); 
+	}
+
+	function mousemoveFunc(d) {
+		tooltip
+			.style("top", (d3.event.pageY - 10) + "px" )
+			.style("left", (d3.event.pageX + 10) + "px");
+	}
 
 		</script>
 
