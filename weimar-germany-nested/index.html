@@ -99,7 +99,7 @@
 
 			var dateFormat = d3.time.format("%B %d %Y");
 
-			var margin = {top: 20, right: 25, bottom: 20, left: 200};
+			var margin = {top: 20, right: 25, bottom: 20, left: 100};
 
 			var width = fullwidth- margin.left - margin.right, 
 				height = fullheight - margin.top - margin.bottom;
@@ -252,6 +252,13 @@
 			svg.append("g")
 					.attr("class", "y axis")
 					.call(yAxis);
+
+				svg.append("text")
+					.attr("class", "ylabel")
+					.attr("transform","rotate(-90) translate(" + (-height/2) + ",0)")
+					.style("text-anchor", "middle")
+					.attr("dy", -80)
+					.text("Votes");
 
 
 			function mouseoverFunc(d) {

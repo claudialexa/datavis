@@ -4,8 +4,12 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>Scatter Transition</title>
-		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+		<title>The Effect on Income on Education</title>
+		<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
 		<style type="text/css">
 
 			body {
@@ -14,8 +18,13 @@
 			}
 
 			h1 {
-				font-size: 24px;
+				font-size: 26px;
+				font-weight:bold;
 				margin: 0;
+			}
+
+			h3 {
+				font-size: 20px;
 			}
 
 			p {
@@ -29,13 +38,15 @@
 				cursor: pointer;
 			}
 
-			.buttons {
-				margin-left: 500px;
-				padding: 20px;
+
+			.button {
+				background-color: #ffffff;
+				border: 0px;
 			}
 
 			.selected {
-				background-color: #eee;
+				background-color: #969899;
+				border: 0px;
 			}
 
 			.chart-title {
@@ -50,17 +61,17 @@
 			}
 
 			.dots {
-				fill: steelblue;
+				fill: #3498DB;
 			}
 
 			.highlighted {
-				fill: orange;
+				fill: #E74C3C;
 			}
 
 			.axis path,
 			.axis line {
 				fill: none;
-				stroke: black;
+				stroke: gray;
 				shape-rendering: crispEdges;
 			}
 
@@ -78,26 +89,59 @@
 				fill: gray;
 			}
 
+			.row {
+				padding-top: 30px;
+			}
+
+			.btn-group{
+				padding-top: 15px;
+			}
+
 		</style>
 	</head>
 	<body>
 
-		<h1>Books and Toys at Home by Richest 20% and Poorest 20%</h1>
+	<div class="container">
+		<div class="row">
+	        <div class="col-md-8">
 
-		<p>Source: World Development Indicators, <a href="http://datacatalog.worldbank.org">World Bank SOWC All Countries Update 214</a>, latest data 2013</p>
+				<h1>The Effect of Income on Education</h1>
 
-		<div class="buttons">
-		<button class="clicker" id="toys">Show Toys!</button>
-		<button class="clicker" id="books">Show Books!</button>
-		</div>
+				<p>Fourth graders who did not qualify for free or discounted school lunch, an indicator of a family living below the poverty line, performed significantly better in reading exams. On a national average, only 18% of fourth graders in lower income families were reading proficient, against 48% of their higher income counterparts.</p>
 
-		<p class="chart-title">Books at Home</p>
+				<p>Children from lower income families are less likely to attend pre-school. In urban states, that may be because early care is too expensive, especially in areas that do not provide free universal early care. In rural areas, the problem is more connected to the distance from a family to the nearest pre-school or even more alarmingly, the quality of the education provided at the care centers.</p>
+
+				<p>Source: <a href="http://datacenter.kidscount.org/data#FL/2/0">Kids Count Data Center</a></p>
+
+				<div class="btn-group" role="group" aria-label="...">
+					<button class="clicker" id="reading">Reading Proficiency</button>
+					<button class="clicker" id="earlyed">Early Education</button>
+				</div>
+
+				<h3>Reading Proficiency</h3>
+
+				
+			</div>
+
+			<div class="col-md-4">
+
+			<div id="svg"></div>
+        	<div>
+	        	<img src="united-states-map.png" class="img-responsive" alt="United States">
+        	</div>
+        	</div>
+              </div>
+
+	</div>
+
+
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
 
 		<script type="text/javascript">
 
 
-			var fullwidth = 700;
-			var fullheight = 600;
+			var fullwidth = 600;
+			var fullheight = 450;
 
 			var margin = { top: 20, right: 10, bottom: 50, left: 50 };
 
@@ -109,8 +153,6 @@
 
 			var dotRadius = 3; // fix this to a nice value.
 
-			// fill in the margin values here.  Also, we set domain to 0 to 100 since it's percents,
-			// plus some padding room!
 			var xScale = d3.scale.linear()
 								.range([ 0, width ])
 								.domain([-2,100]);
@@ -120,12 +162,11 @@
 								.range([ height, 0 ])
 								.domain([-2,100]);
 
-			//  Custom tick count if you want it.
 			// Create your axes here.
 			var xAxis = d3.svg.axis()
 							.scale(xScale)
 							.orient("bottom")
-							.ticks(10);  // fix this to a good number of ticks for your scale later.
+							.ticks(12);  
 
 			var yAxis = d3.svg.axis()
 							.scale(yScale)
@@ -138,7 +179,7 @@
 						.append("g")
 						.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-			d3.csv("data/books_toys_by_rich_poor2013.csv", draw);
+			d3.csv("educationbyincome.csv", draw);
 
 
 		function draw(error, data) {
@@ -155,15 +196,15 @@
 				// Circles in SVG have cx, cy, and r attributes. x location, y location, radius.
 
 				circles.attr("cx", function(d) {
-						return xScale(+d.poorBooks);
+						return xScale(+d.lowIncomeReading);
 						// return the value to use for your x scale here
 					})
 					.attr("cy", function(d) {
-						return yScale(+d.richBooks);
+						return yScale(+d.highIncomeReading);
 					})
 					.attr("class", function(d){
 						// highlighting some interesting outliers
-						if (d.country === "Ukraine" || d.country === "Mali" || d.country == "Morocco") {
+						if (d.State === "Florida" || d.State === "Massachusetts" || d.State == "Wisconsin") {
 							return "highlighted";
 						}
 						else {
@@ -172,7 +213,7 @@
 					})
 					.append("title")
 					.text(function(d) {
-						return d.country + " reports books for " + d.poorBooks + "% kids in poor areas and " + d.richBooks + "% in rich areas.";
+						return d.State + " " + "Low Income Family:"+ " " + d.lowIncomeReading + "%" + " " + "High Income Family:" + " " + d.highIncomeReading + "%";
 					});
 
 
@@ -203,17 +244,17 @@
 								(height + 20) + ")")
 					.style("text-anchor", "middle")
 					.attr("dy", "12")
-					.text("Poorest 20%");
+					.text("Low Income Families");
 
 				svg.append("text")
 					.attr("class", "ylabel")
 					.attr("transform","rotate(-90) translate(" + (-height/2) + ",0)")
 					.style("text-anchor", "middle")
 					.attr("dy", -25)
-					.text("Richest 20%");
+					.text("Higher Income Families");
 
 					// make the default data button look selected
-				d3.select("button#books").classed("selected", true);
+				d3.select("button#reading").classed("selected", true);
 
 				// handle the click events on the 2 buttons:
 
@@ -225,10 +266,10 @@
 					// style the buttons to show which one was clicked:
 					d3.select(this).classed("selected", true);
 
-					if (whichbutton === "toys") {
-						d3.select("button#books").classed("selected", false);
+					if (whichbutton === "reading") {
+						d3.select("button#earlyed").classed("selected", false);
 					} else {
-						d3.select("button#toys").classed("selected", false);
+						d3.select("button#reading").classed("selected", false);
 					}
 
 					// The id is either toys or books.  We just check which
@@ -238,39 +279,38 @@
 							.transition()
 							.duration(2000)
 							.attr("cx", function(d) {
-								if (whichbutton === "toys") {
-									return xScale(+d.poorToys);
+								if (whichbutton === "earlyed") {
+									return xScale(+d.lowIncomePreK);
 								}
 								else { // then it's books:
-									return xScale(+d.poorBooks);
+									return xScale(+d.lowIncomeReading);
 								}
 								// return the value to use for your x scale here
 							})
 							.attr("cy", function(d) {
-								if (whichbutton === "toys") {
-									return yScale(+d.richToys);
+								if (whichbutton === "earlyed") {
+									return yScale(+d.highIncomePreK);
 								} else {
-									return yScale(+d.richBooks);
+									return yScale(+d.highIncomeReading);
 								}
 							});
 
-							// We can't transition the new title text -- must remove and rewrite.
 						circles.selectAll("title").remove();
 						circles
 							.append("title")
 							.text(function(d) {
-								if (whichbutton === "toys") {
-									return d.country + " reports toys for " + d.poorToys + "% kids in poor areas and " + d.richToys + "% in rich areas.";
+								if (whichbutton === "reading") {
+									return d.State + " " + "Reading proficiency in low income families:" + " " + d.lowIncomeReading + "Reading proficiency in higher income families:" + " " + d.highIncomeReading;
 								} else {
-									return d.country + " reports books for " + d.poorBooks + "% kids in poor areas and " + d.richBooks + "% in rich areas.";
+									return d.State + " " + "Children enrolled in Pre-k in low income families:" + " " + d.lowIncomePreK + "Children enrolled in Pre-k in higher income families:" + " " + d.highIncomePreK;
 								}
 							});
 
 							// change the visible title!
-					if (whichbutton === "toys") {
-						d3.select("p.chart-title").text("Toys at Home");
+					if (whichbutton === "reading") {
+						d3.select("p.chart-title").text("Reading Proficiency of 4th Graders");
 					} else {
-						d3.select("p.chart-title").text("Books at Home");
+						d3.select("p.chart-title").text("Children Enrolled in Early Education (Pre-k)");
 					}
 
 
