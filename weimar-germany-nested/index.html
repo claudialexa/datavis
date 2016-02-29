@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<title>Crazy Elections: Weimar Germany</title>
+		<title>How Hitler Came to Power: Understanding the German Elections 1919-1933</title>
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
 		<style type="text/css">
 			body {
@@ -67,8 +67,9 @@
 
 			.tooltip p {
 				background-color: white;
-				border: none;
+				border: gray 1px solid;
 				padding: 2px;
+				min-width: 220px;
 			}
 
 			.xlabel {
@@ -80,11 +81,13 @@
 	</head>
 
 	<body>
-		<h2>Crazy Elections: Weimar Germany</h2>
+		<h2>How Hitler Came to Power: Understanding the German Elections of 1919-1933</h2>
+
+		<p><b>Data Vis</b> by Claudia Aguirre. <b>Data Source:</b> <i>The Weimar Republic</i>, Eberhard Kolb</p>
 
 		<p> By the time World War I ended, the Germans had lost millions of lives and were in a deep economic depression. The unrest that followed the end of the war resulted in the overthrow of the empire and the formation of a new government, the Weimar Republic. </p>
 
-		<p>This time in German history is remembered by the cultural renaissance of German society; the emergence of cabaret, Bauhaus and the arts. At the same time, it also saw some of the biggest political and economic failures, most highlighted by rampant hyperinflation and ulatimately, the government's inability to stop Adolf Hitler from coming to power in 1935. </p>
+		<p>This time in German history is remembered by the cultural renaissance of German society; the emergence of cabaret, Bauhaus and the arts. At the same time, it also saw some of the biggest political and economic failures, most highlighted by rampant hyperinflation and ultimately, the government's inability to stop Adolf Hitler from coming to power in 1935. </p>
 
 		<p>Leading to that fateful day in 1935, there were more elections and political parties around the country than Germans could count. Many (like the Nazi Party, once named the National Socialist German Workers' Party) appeared one day, died the next and revived in a few months. In following these patterns, historians have been able to understand the state of the German mindset and how the Nazi Party was actually able to get to power.</p>
 
@@ -113,7 +116,7 @@
 			var xAxis = d3.svg.axis()
 				.scale(xScale)
 				.orient("bottom")
-				.ticks(10)
+				.ticks(13)
 				.innerTickSize([0]);
 
 			var yAxis = d3.svg.axis()
@@ -129,12 +132,7 @@
 				})
 				.y(function (d) {
 					return yScale(+d.Votes);
-				})
-				.interpolate("basis");
-
-			var tooltip = d3.select("body")
-	      	.append("div")
-	      	.attr("class", "tooltip");
+				});
 
 			//Create the empty SVG image
 			var svg = d3.select("body")
@@ -143,6 +141,10 @@
 				.attr("height", fullheight)
 				.append("g")
 				.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+			var tooltip = d3.select("body")
+	      	.append("div")
+	      	.attr("class", "tooltip");
 			
 
 			d3.csv("german_elections_final.csv", function (error,data) {
@@ -192,44 +194,94 @@
 						return color(d[0].Party); })
 					.attr("d", line); 
 
+				var circles = groups.selectAll("circle")
+								.data(function(d) { 
+									return d.values; 
+								})
+								.enter()
+								.append("circle");
 
-				//Axes
-				svg.append("g")
+				circles.attr("cx", function(d) {
+						return xScale(dateFormat.parse(d.Date));
+					})
+					.attr("cy", function(d) {
+						return yScale(d.Votes);
+					})
+					.attr("r", 4)
+					.style("opacity", 1)
+					.style("fill", "gray"); 
+
+				circles
+					.on("mouseover", mouseoverFunc)
+					.on("mousemove", mousemoveFunc)
+					.on("mouseout",	mouseoutFunc);
+
+	      // Still need to fix line label ugh
+
+	      // groups.append("text")
+	      // .attr("x", function(d) {
+	      // 	if (d.values.length != 0) {
+		     //  	var lastYear = d.values[d.values.length-1].date;
+		     //  	return xScale(dateFormat.parse(lastYear));
+		     //  }
+	      // })
+	      // .attr("y", function(d) {
+	      // 	if (Votes.length != 0) {
+		     //  	var lastAmount = d.Votes[d.Votes.length-1].amount;
+		     //  	return yScale(+lastAmount);
+	      // 	}
+	      // })
+	      // .attr("dx", "3px")
+	      // .attr("dy", "3px")
+	      // .text(function(d) {
+	      // 	if (d.values.length != 0) {
+	      // 		var lastAmount = d.values[d.values.length-1].amount;
+	      // 		if (+lastAmount > 700000) {
+	      // 			return d.Party;
+	      // 		}
+	      // 	}
+	      // })
+	      // .attr("class", "linelabel");
+
+	      	//Axes
+			svg.append("g")
 					.attr("class", "x axis")
 					.attr("transform", "translate(0," + height + ")")
 					.call(xAxis);
 
-				svg.append("g")
+			svg.append("g")
 					.attr("class", "y axis")
 					.call(yAxis);
 
 
-				d3.selectAll("g.lines")
-					.on("mouseover", mouseoverFunc)
-					.on("mouseout", mouseoutFunc)
-					.on("mousemove", mousemoveFunc);
+			function mouseoverFunc(d) {
+					d3.select(this)
+						.transition()
+						.style("opacity", 1)
+						.attr("r", 10);
+					tooltip
+						.style("display", null) // this removes the display none setting from it
+						.html("<p>Party: " + d.Party +
+									"<br>Year: " + d.Date +
+								  "<br>Votes: " + d.Votes + "</p>");
+					}
 
-			});
+				function mousemoveFunc(d) {
+					tooltip
+						.style("top", (d3.event.pageY - 10) + "px" )
+						.style("left", (d3.event.pageX + 10) + "px");
+					}
 
-		function mouseoverFunc(d) {
+				function mouseoutFunc(d) {
+					d3.select(this)
+						.transition()
+						.style("opacity", 1)
+						.attr("r", 4);
+			    tooltip.style("display", "none");  // this sets it to invisible!
 
-		d3.selectAll("path.line").classed("unfocused", true);
-		d3.select(this).select("path.line").classed("unfocused", false).classed("focused", true);
-		tooltip
-			.style("display", null) // this removes the display none setting from it
-			.html("<p>" + d.key + "</p>");
-	}
+			     }
 
-	function mouseoutFunc() {
-			d3.selectAll("path.line").classed("unfocused", false).classed("focused", false);
-			tooltip.style("display", "none"); 
-	}
-
-	function mousemoveFunc(d) {
-		tooltip
-			.style("top", (d3.event.pageY - 10) + "px" )
-			.style("left", (d3.event.pageX + 10) + "px");
-	}
+			}); // end of data csv
 
 		</script>
 
