@@ -46,7 +46,7 @@
 			}
 
 			.line.unfocused{
-				stroke-opacity: 60%;
+				stroke-opacity: 40%;
 			}
 
 			.line.focused {
@@ -96,6 +96,10 @@
 
 			var fullwidth = 1000;
 				fullheight = 500;
+
+			var color = d3.scale.ordinal()
+  				.domain(["National Socialist German Workers Party (Nazi Party)", "Independent Social Democratic Party of Germany", "Social Democratic Party of Germany", "Communist Party of Germany", "Centre Party", "German National People's Party", "Bavarian People's Party", "German People's Party", "Christian Social People's Service", "German State Party", "German Farmers' Party", "Agricultural League", "Reich Party of the German Middle Class", "German-Hanoverian Party", "Radical Middle Class", "Christian-National Peasants' and Farmers' Party", "People's Justice Party", "Socialist Workers' Party of Germany"])
+  				.range(["#000000", "#cccccc", "#3333ff", "#FF0000", "#cccccc", "#cccccc", "#cccccc", "#cccccc", "#cccccc", "#cccccc", "#cccccc", "#cccccc", "#cccccc", "#cccccc", "#cccccc", "#cccccc", "#cccccc", "#cccccc"]);
 
 			var dateFormat = d3.time.format("%B %d %Y");
 
@@ -175,7 +179,7 @@
 					0
 					]);
 
-				var color = d3.scale.category10();
+				
 
 				var groups = svg.selectAll("g.lines")
 					.data(dataset)
@@ -201,47 +205,25 @@
 								.enter()
 								.append("circle");
 
-				circles.attr("cx", function(d) {
+			circles.attr("cx", function(d) {
 						return xScale(dateFormat.parse(d.Date));
 					})
 					.attr("cy", function(d) {
 						return yScale(d.Votes);
 					})
-					.attr("r", 4)
-					.style("opacity", 1)
-					.style("fill", "gray"); 
+					.style("opacity", 0.8)
+					.style("fill", function(d) {
+						return color(d.Party);
+					})
+					.attr("r", 4); 
 
 				circles
 					.on("mouseover", mouseoverFunc)
 					.on("mousemove", mousemoveFunc)
 					.on("mouseout",	mouseoutFunc);
 
-	      // Still need to fix line label ugh
+	      	// Still need to fix line label ugh these go here
 
-	      // groups.append("text")
-	      // .attr("x", function(d) {
-	      // 	if (d.values.length != 0) {
-		     //  	var lastYear = d.values[d.values.length-1].date;
-		     //  	return xScale(dateFormat.parse(lastYear));
-		     //  }
-	      // })
-	      // .attr("y", function(d) {
-	      // 	if (Votes.length != 0) {
-		     //  	var lastAmount = d.Votes[d.Votes.length-1].amount;
-		     //  	return yScale(+lastAmount);
-	      // 	}
-	      // })
-	      // .attr("dx", "3px")
-	      // .attr("dy", "3px")
-	      // .text(function(d) {
-	      // 	if (d.values.length != 0) {
-	      // 		var lastAmount = d.values[d.values.length-1].amount;
-	      // 		if (+lastAmount > 700000) {
-	      // 			return d.Party;
-	      // 		}
-	      // 	}
-	      // })
-	      // .attr("class", "linelabel");
 
 	      	//Axes
 			svg.append("g")
