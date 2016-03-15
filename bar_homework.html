@@ -80,9 +80,10 @@
     var fullwidth = 400;
     var fullheight = 500;
 
-    var margin = {top: 20, right: 40, bottom: 10, left: 40},
-      width = fullwidth - margin.right - margin.left;
-      height = fullheight - margin.top - margin.bottom;
+    var margin = {top: 10, right: 20, bottom: 20, left: 10};
+
+    var height = fullheight - margin.top - margin.bottom;
+    var width = fullwidth - margin.left - margin.right;
 
     var format = d3.format(".1%");
 
@@ -100,16 +101,18 @@
     d3.csv("data/deaths_04yearsold_2013percent.csv", function(error, data) {
 
         var column = d3.select("#menu select").property("value");
-        var dataset =  top20_by_column(data, column);
+        topTwenty = data.sort(function(a, b) {
+            return b.value - a.value;
+        }).slice(0,20);
 
-        console.log(column, dataset);
+        console.log(topTwenty);
 
         //setup our ui -- requires access to data variable, so inside csv
         d3.select("#menu select")
             .on("change", function() {
-                column = d3.select("#menu select").property("value");
-                dataset = top20_by_column(data, column);
-                console.log(column, dataset);
+                column = //TODO: How do you get the current value of the select menu?
+                dataset = //TODO: How do you get the current filter/storted data?
+                //console.log(column, dataset);
                 redraw(dataset, column);
         });
 
@@ -121,8 +124,9 @@
 
     function top20_by_column(data, column) {
 
-        var topTwenty = data.sort(function(a, b) {
-        return b.column - a.column; }).slice(0, 20);
+        // TODO: fill in this function.  The answer direction is in the wiki page for week8.
+        // You want to sort the data by the column, descending order, and then slice.
+
         }
 
     // This function is used to draw and update the data. It takes different data each time.
@@ -132,7 +136,7 @@
         var max = d3.max(data, function(d) {return +d[column];});
 
         xScale = d3.scale.linear()
-            .domain([0, max])
+            .domain([0, //TODO: what goes here?])
             .range([0, width]);
 
         yScale = d3.scale.ordinal()
@@ -141,7 +145,9 @@
 
 
         var bars = vis.selectAll("rect.bar")
-            .data(data, function (d) { return d.Country;})
+            .data(data, function (d) { return //TODO: what is your key value?}); // key function!
+
+        //update -- existing bars get blue when we "redraw". We don't change labels.
         bars
             .attr("fill", "steelblue");
 
@@ -157,16 +163,17 @@
             .transition()
             .duration(300)
             .attr("width", 0)
-            .remove();
+            //TODO: what goes here at the end of exit?
+
         // transition -- move the bars to proper widths and location
         bars
             .transition()
             .duration(300)
             .ease("quad")
             .attr("width", function(d) {
-                return xScale(d.Country);
+                return xScale(//TODO: what goes here?);
             })
-            .attr("height", yScale.rangeBand())
+            .attr("height", //TODO: In an ordinal scale bar chart, what goes here?)
             .attr("fill", "darkorange") // do what you like with the colors
             .attr("transform", function(d,i) {
                 return "translate(0," + yScale(i) + ")";
@@ -176,7 +183,9 @@
         //  We are attaching the labels separately, not in a group with the bars...
 
         var labels = svg.selectAll("text.labels")
-            .data(data, function (d) { return d.Country;})
+            .data(data, function (d) { //TODO: what is your key here? same as above.}); // key function!
+
+        // everything gets a class and a text field.  But we assign attributes in the transition.
         labels.enter()
             .append("text")
             .attr("class", "labels");
@@ -185,9 +194,9 @@
             .remove();
 
         labels.transition()
-            .duration(.2)
+            .duration(//TODO: How long do you want this to last?)
             .text(function(d) {
-                return d.Country ;
+                return d.Country + " " + format(//TODO: what goes here?);
             })
             .attr("transform", function(d,i) {
                     return "translate(" + xScale(+d[column]) + "," + yScale(i) + ")"
