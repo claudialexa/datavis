@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<!-- Modification of Mike Bostock's code in http://bl.ocks.org/mbostock/1157787 -->
+<meta charset="utf-8">
+<style>
+
+body {
+  font: 10px sans-serif;
+  margin: 20px;
+  padding: 20px;
+}
+
+.line {
+  fill: none;
+  stroke: #999999;
+  stroke-width: 1.5px;
+}
+
+.area {
+  fill: #dedede;
+}
+
+.label {
+  fill: steelblue;
+  font-weight:bold;
+  z-index: 4;
+}
+
+.endpoint {
+  fill: #666;
+}
+
+.y.axis text {
+  fill: steelblue;
+}
+
+</style>
+<body>
+
+  <h2>Terrorism Incidents 2000-2014</h2>
+
+  <p>Description goes here</p>
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+<script>
+
+
+var fullheight = 160,
+  fullwidth = 300;
+
+var margin = {top: 30, right: 15, bottom: 20, left: 45},
+    width = fullwidth - margin.left - margin.right,
+    height = fullheight - margin.top - margin.bottom;
+
+var parseDate = d3.time.format("%Y").parse;
+var outputDate = d3.time.format("%Y");
+var xScale = d3.time.scale().range([0, width]).clamp(true);
+var yScale = d3.scale.linear().range([height, 0]).clamp(true);
+
+var x = d3.time.scale()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var yAxis = d3.svg.axis()
+      .orient("left")
+      .ticks(4)
+      .outerTickSize(0)
+      .innerTickSize(0)
+      .tickFormat(d3.format("s"));
+
+var incident = "Incidents";  // pick the one from the columns to plot
+
+var data = [],
+  circle = null,
+  caption = null,
+  curYear = null;
+
+  var xValue = function(d) {
+    return d.date;
+  };
+  var yValue = function(d) {
+    return d.count;
+  };
+
+var area = d3.svg.area().x(function(d) {
+    return xScale(xValue(d));
+      }).y0(height).y1(function(d) {
+      return yScale(yValue(d));
+    });
+  var line = d3.svg.line().x(function(d) {
+      return xScale(xValue(d));
+    }).y(function(d) {
+      return yScale(yValue(d));
+  });
+
+
+d3.select("h1").text("Total Number of Terrorist Incidents 2000-2014");
+
+var area = d3.svg.area()
+    .x(function(d) { return x(d.date); })
+    .y0(height)
+    .y1(function(d) { return y(d[incident]); });
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d.date); })
+    .y(function(d) { return y(d[incident]); });
+
+d3.csv("terrorism-00s.csv", typeFix, function(error, data) {
+
+  //typeFix is a function that parses the dates and sets the strings to numeric. See below!
+  console.log("data after load", data);
+
+  // Nest data by symbol.
+  var countries = d3.nest()
+      .key(function(d) { return d.Region; })
+      .sortKeys(d3.ascending)
+      .sortValues(function(a,b) {return a.date - b.date;})
+      .entries(data);
+
+  console.log(countries);
+
+  // sort by worst ending incident value!  Incidents is a variable here, remember:
+  countries.sort(function(a,b) { return b.values[12][incident] - a.values[12][incident]; });
+
+  // Compute the minimum and maximum date across symbols.
+  // We assume values are sorted by date.
+  x.domain([
+    d3.min(countries, function(s) { return s.values[0].date; }),
+    d3.max(countries, function(s) { return s.values[s.values.length - 1].date; })
+  ]);
+
+  // Add an SVG element for each symbol, with the desired dimensions and margin:
+  var svg = d3.select("body").selectAll("svg")
+      .data(countries) // the data for each graph
+    .enter().append("svg")
+      .attr("width", fullwidth)
+      .attr("height", fullheight)
+    .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+      .each(multiple); // uses each to call the multiple code for each country
+
+  function multiple(country) {
+
+    console.log("in multiple", country);
+
+    var localsvg = d3.select(this);
+    y.domain([0, d3.max(country.values, function(d) { return d[incident]; })]);
+
+    // Add the area path elements. Note: the y-domain is set per element.
+    localsvg.append("path")
+        .attr("class", "area")
+        .attr("d", function(d) { return area(d.values); });
+
+    // Add the line path elements. Note: the y-domain is set per element.
+    localsvg.append("path")
+        .attr("class", "line")
+        .attr("d", function(d) { return line(d.values); });
+
+    localsvg.append("text")
+      .attr("class", "label")
+      .attr("x", 0)
+      .attr("y", height + margin.bottom/2)
+      .style("text-anchor", "start")
+      .text(function(d) { return outputDate(d.values[0].date); });
+
+    // Add a small label for the symbol name.
+
+    localsvg.append("text")
+      .attr("class", "label")
+      .attr("x", width/2)
+      .attr("y", -10)
+      .style("text-anchor", "middle")
+      .text(function(d) { return d.key; });
+
+    localsvg.append("text")
+      .attr("class", "label")
+      .attr("x", width)
+      .attr("y", height + margin.bottom/2)
+      .style("text-anchor", "end")
+      .text(function(d) { return outputDate(d.values[d.values.length - 1].date);});
+
+      // put a dot on last point
+      localsvg.append("circle")
+      .attr("class", "endpoint")
+      .attr("cx", function(d) {return x(d.values[d.values.length - 1].date);})
+      .attr("cy", function(d) {return y(d.values[d.values.length - 1][incident]);})
+      .attr("r", 2);
+
+      // label the value on the last point
+    localsvg.append("text")
+     .attr("class", "endpoint")
+      .attr("x", width)
+      .attr("y", function(d) {return y(d.values[d.values.length - 1][incident]);})
+      .attr("dy", -5)
+      .style("text-anchor", "end")
+      .text(function(d) { return d.values[d.values.length - 1][incident]; });
+
+    yAxis.scale(y);
+
+    localsvg.append("g").attr("class", "y axis").call(yAxis);
+
+  } // end of the multiple function
+
+});
+
+  // this function is applied to all the data values on load!
+
+function typeFix(d) {
+  d.Incidents = +d.Incidents;
+  d.date = parseDate(d.Year);
+  return d;
+}
+</script>
